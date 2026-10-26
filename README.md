@@ -1,5 +1,21 @@
 # Galastri Rewrap
 
+## Ataula tables
+
+`Alt+Q` now recognizes complete Ataula boxes (simple drawing borders or ASCII),
+including those inside comments and Markdown quotes. With the cursor in a table,
+it reflows the last column of that table and rebuilds its right border within
+the normal Rewrap column/ruler. Prefixes, indentation, padding and the border
+itself count towards that limit. The other columns keep their text and widths;
+extra rows are added as needed. Blank paragraphs remain separate.
+
+The force command and custom-column command use the same table handling. Long
+words are split when necessary to keep the border inside the ruler. Nested boxes
+are preserved intact. If the fixed columns or a nested box leave too little
+room, the command explains this and leaves the table untouched. To reflow the
+contents of a nested box itself, use its own Ataula editing commands.
+
+
 This fork adds **Rewrap: Force Rewrap as Plain Text** (`rewrap.forceRewrap`).
 Run it from the Command Palette, or assign a keyboard shortcut. It wraps the
 selected lines regardless of the document language, including text inside

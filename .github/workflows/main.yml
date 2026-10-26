@@ -63,6 +63,9 @@ jobs:
       - name: Test forced wrapping
         run: node core/test/force.mjs
 
+      - name: Check Ataula wrapping
+        run: node vscode.test/ataula.cjs
+
       - name: Typecheck extension
         run: npx --no-install tsc -p vscode --noEmit
 

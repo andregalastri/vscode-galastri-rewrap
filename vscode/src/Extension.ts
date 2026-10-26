@@ -3,6 +3,7 @@ import {applyEdit, catchErr, docType, docLine} from './Common'
 import {TextEditor, commands, window} from 'vscode'
 import {getCoreSettings} from './Settings'
 import AutoWrap from './AutoWrap'
+import {rewrapAtaula} from './Ataula'
 
 export {activate, getCoreSettings}
 
@@ -71,9 +72,13 @@ const doWrap = (editor, customColumn?, force = false) => {
         let settings = getCoreSettings(editor, toCol)
         const selections = editor.selections
 
-        const edit = force
-            ? rewrapForced(settings, selections, docLine(doc))
-            : rewrap(docType(doc), settings, selections, docLine(doc))
+        const lines = Array.from({length: doc.lineCount}, (_, i) => doc.lineAt(i).text)
+        const table = rewrapAtaula(lines, settings, selections)
+        if (table && table.message) window.showInformationMessage(table.message)
+        let edit
+        if (table) edit = table.edit
+        else if (force) edit = rewrapForced(settings, selections, docLine(doc))
+        else edit = rewrap(docType(doc), settings, selections, docLine(doc))
         return applyEdit(editor, edit).then(null, catchErr)
     }
     catch(err) { catchErr(err); return Promise.resolve() }
