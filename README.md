@@ -16,7 +16,7 @@ room, the command explains this and leaves the table untouched. To reflow the
 contents of a nested box itself, use its own Ataula editing commands.
 
 
-This fork adds **Rewrap: Force Rewrap as Plain Text** (`rewrap.forceRewrap`).
+This fork adds **Galastri Rewrap: Force Rewrap as Plain Text** (`rewrap.forceRewrap`).
 Run it from the Command Palette, or assign a keyboard shortcut. It wraps the
 selected lines regardless of the document language, including text inside
 Markdown code blocks, indented code, tables, and source code. With no selection,

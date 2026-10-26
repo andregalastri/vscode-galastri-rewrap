@@ -12,7 +12,7 @@
     "paragraph",
     "multi-root ready"
   ],
-  "version": "1.16.6",
+  "version": "1.16.7",
   "publisher": "andregalastri",
   "icon": "logo.png",
   "repository": {
@@ -49,19 +49,23 @@
     "commands": [
       {
         "command": "rewrap.rewrapComment",
-        "title": "Rewrap Comment / Text"
+        "title": "Comment / Text",
+        "category": "Galastri Rewrap"
       },
       {
         "command": "rewrap.forceRewrap",
-        "title": "Rewrap: Force Rewrap as Plain Text"
+        "title": "Force Rewrap as Plain Text",
+        "category": "Galastri Rewrap"
       },
       {
         "command": "rewrap.rewrapCommentAt",
-        "title": "Rewrap/Unwrap Text At Column..."
+        "title": "Wrap/Unwrap Text At Column...",
+        "category": "Galastri Rewrap"
       },
       {
         "command": "rewrap.toggleAutoWrap",
-        "title": "Rewrap: Toggle Auto-Wrap for Current Document"
+        "title": "Toggle Auto-Wrap for Current Document",
+        "category": "Galastri Rewrap"
       }
     ],
     "configuration": {
