@@ -4,6 +4,7 @@ import {TextEditor, commands, window} from 'vscode'
 import {getCoreSettings} from './Settings'
 import AutoWrap from './AutoWrap'
 import {rewrapAtaula} from './Ataula'
+import {rewrapMarkdownCode} from './MarkdownCode'
 
 export {activate, getCoreSettings}
 
@@ -77,8 +78,13 @@ const doWrap = (editor, customColumn?, force = false) => {
         if (table && table.message) window.showInformationMessage(table.message)
         let edit
         if (table) edit = table.edit
-        else if (force) edit = rewrapForced(settings, selections, docLine(doc))
-        else edit = rewrap(docType(doc), settings, selections, docLine(doc))
+        else {
+            edit = rewrapMarkdownCode(docType(doc), settings, selections, lines, force)
+            if (!edit) {
+                if (force) edit = rewrapForced(settings, selections, docLine(doc))
+                else edit = rewrap(docType(doc), settings, selections, docLine(doc))
+            }
+        }
         return applyEdit(editor, edit).then(null, catchErr)
     }
     catch(err) { catchErr(err); return Promise.resolve() }

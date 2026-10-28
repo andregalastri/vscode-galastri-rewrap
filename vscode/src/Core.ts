@@ -58,3 +58,5 @@ export const rewrapForced:
   Main.rewrapForced
 
 export const saveDocState: (docState: DocState) => void = Main.saveDocState
+
+export const languageNameForFile: (docType: DocType) => string = Main.languageNameForFile

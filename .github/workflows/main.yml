@@ -66,6 +66,9 @@ jobs:
       - name: Check Ataula wrapping
         run: node vscode.test/ataula.cjs
 
+      - name: Check Markdown code comments
+        run: node vscode.test/markdown-code.cjs
+
       - name: Typecheck extension
         run: npx --no-install tsc -p vscode --noEmit
 

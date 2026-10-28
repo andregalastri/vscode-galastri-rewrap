@@ -1,5 +1,15 @@
 # Galastri Rewrap
 
+## Comments inside Markdown code fences
+
+Inside a labelled code fence such as ` ```php `, the normal `Alt+Q` command uses
+that language's comment rules, just as in a PHP source file. Comment delimiters,
+leading `*` characters, code outside the comment, and the fence lines are kept.
+The force command also respects the embedded language in this case. Unlabelled
+fences containing C/PHP-style comments are recognized as comment examples too.
+The width still comes from the Markdown document's Rewrap settings/rulers.
+
+
 ## Ataula tables
 
 `Alt+Q` now recognizes complete Ataula boxes (simple drawing borders or ASCII),
