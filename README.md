@@ -1,5 +1,16 @@
 # Galastri Rewrap
 
+## Paragraph and selection scope
+
+Manual wrapping affects only the paragraph at each cursor, or the selected lines
+when a selection is present. It does not expand to the whole surrounding comment.
+Ataula boxes outside that scope remain untouched, including slightly uneven ones.
+Inside Ataula, only the selected paragraphs/lines in the last column are reflowed.
+Indented and bracketed code examples retain their original lines and indentation.
+Borders and padding are aligned as needed; if preserved content prevents fitting
+the ruler, the box stays wide enough for that content and a message explains why.
+
+
 ## Comments inside Markdown code fences
 
 Inside a labelled code fence such as ` ```php `, the normal `Alt+Q` command uses
@@ -14,7 +25,7 @@ The width still comes from the Markdown document's Rewrap settings/rulers.
 
 `Alt+Q` now recognizes complete Ataula boxes (simple drawing borders or ASCII),
 including those inside comments and Markdown quotes. With the cursor in a table,
-it reflows the last column of that table and rebuilds its right border within
+it reflows the current paragraph in the last column and rebuilds its right border within
 the normal Rewrap column/ruler. Prefixes, indentation, padding and the border
 itself count towards that limit. The other columns keep their text and widths;
 extra rows are added as needed. Blank paragraphs remain separate.
@@ -30,7 +41,7 @@ This fork adds **Galastri Rewrap: Force Rewrap as Plain Text** (`rewrap.forceRew
 Run it from the Command Palette, or assign a keyboard shortcut. It wraps the
 selected lines regardless of the document language, including text inside
 Markdown code blocks, indented code, tables, and source code. With no selection,
-it wraps the paragraph at each cursor. Use Select All to wrap the entire file.
+it wraps only the paragraph at each cursor. Use Select All to wrap the entire file.
 It uses the normal Rewrap width, rulers, tab size, and sentence spacing settings.
 Repeated invocations cycle through rulers, like the normal command.
 

@@ -16,7 +16,7 @@ function box(text, size = 80, prefix = '') {
         prefix + '└' + '─'.repeat(size - 2) + '┘']
 }
 function format(lines, column = 45, line = 1) {
-    const result = rewrapAtaula(lines, {...settings, column}, cursor(line))
+    const result = rewrapAtaula(lines, {...settings, column}, [{anchor: {line: 0, character: 0}, active: {line: lines.length - 1, character: lines[lines.length - 1].length}}])
     assert.ok(result, 'Ataula table detected')
     assert.equal(result.message, undefined)
     return [...lines.slice(0, result.edit.startLine), ...result.edit.lines, ...lines.slice(result.edit.endLine + 1)]

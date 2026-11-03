@@ -69,6 +69,9 @@ jobs:
       - name: Check Markdown code comments
         run: node vscode.test/markdown-code.cjs
 
+      - name: Check paragraph scope and preserved examples
+        run: node vscode.test/scoped-wrap.cjs
+
       - name: Typecheck extension
         run: npx --no-install tsc -p vscode --noEmit
 

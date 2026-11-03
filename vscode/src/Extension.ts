@@ -1,10 +1,9 @@
-import {DocState, maybeChangeWrappingColumn, rewrap, rewrapForced, saveDocState} from './Core'
+import {DocState, maybeChangeWrappingColumn, saveDocState} from './Core'
 import {applyEdit, catchErr, docType, docLine} from './Common'
 import {TextEditor, commands, window} from 'vscode'
 import {getCoreSettings} from './Settings'
 import AutoWrap from './AutoWrap'
-import {rewrapAtaula} from './Ataula'
-import {rewrapMarkdownCode} from './MarkdownCode'
+import {rewrapScoped} from './ScopedWrap'
 
 export {activate, getCoreSettings}
 
@@ -74,17 +73,9 @@ const doWrap = (editor, customColumn?, force = false) => {
         const selections = editor.selections
 
         const lines = Array.from({length: doc.lineCount}, (_, i) => doc.lineAt(i).text)
-        const table = rewrapAtaula(lines, settings, selections)
-        if (table && table.message) window.showInformationMessage(table.message)
-        let edit
-        if (table) edit = table.edit
-        else {
-            edit = rewrapMarkdownCode(docType(doc), settings, selections, lines, force)
-            if (!edit) {
-                if (force) edit = rewrapForced(settings, selections, docLine(doc))
-                else edit = rewrap(docType(doc), settings, selections, docLine(doc))
-            }
-        }
+        const result = rewrapScoped(docType(doc), settings, selections, lines, force)
+        if (result.message) window.showInformationMessage(result.message)
+        const edit = result.edit
         return applyEdit(editor, edit).then(null, catchErr)
     }
     catch(err) { catchErr(err); return Promise.resolve() }

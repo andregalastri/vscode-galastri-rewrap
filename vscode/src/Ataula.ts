@@ -41,7 +41,7 @@ function tables(lines: readonly string[]): Table[] {
         let end = start + 1
         for (; end < lines.length; end++) {
             const next = row(lines[end])
-            if (!next || next.text.length !== first.text.length) break
+            if (!next) break
             rows.push(next)
             if (next.text.startsWith('└') && border(next.text)) { end++; break }
         }
@@ -114,37 +114,76 @@ function wrap(lines: string[], available: number, tabSize: number, doubleSpace: 
     return output.length ? output : ['']
 }
 
-function render(table: Table, settings: Settings): string[] | undefined {
+function selectedLines(content: string[], start: number, selections: readonly Selection[]): boolean[] {
+    const mask = content.map(() => false)
+    let index = 0
+    while (index < content.length) {
+        if (!content[index].trim()) { index++; continue }
+        const first = index
+        while (index < content.length && content[index].trim()) index++
+        const end = index - 1
+        // An indented example or bracketed/fenced block is preformatted, not prose.
+        const literal = content.slice(first, index).some(line => /^(?: {2,}|\t)|^\s*(?:\[|\{|`{3,}|~{3,})/.test(line))
+        if (literal) continue
+        for (const selection of selections) {
+            const a = selection.anchor
+            const b = selection.active
+            if (a.line === b.line && a.character === b.character) {
+                if (a.line >= start + first && a.line <= start + end) for (let row = first; row <= end; row++) mask[row] = true
+            }
+            else {
+                const begin = Math.min(a.line, b.line)
+                let last = Math.max(a.line, b.line)
+                const point = a.line > b.line ? a : b
+                if (a.line !== b.line && point.character === 0) last--
+                for (let row = first; row <= end; row++) if (start + row >= begin && start + row <= last) mask[row] = true
+            }
+        }
+    }
+    return mask
+}
+
+function render(table: Table, settings: Settings, selections: readonly Selection[]): string[] | undefined {
     const size = Math.max(1, settings.tabWidth)
     const oldWidth = Math.max(...table.rows.map(item => width(item.prefix + item.text, size)))
     const limit = settings.column > 0 ? Math.min(settings.column, oldWidth) : oldWidth
     const output: string[] = []
     let index = 0
+    let selected = false
     while (index < table.rows.length) {
         const item = table.rows[index]
         const left = cellLeft(table, item.text)
         const before = item.prefix + item.text.slice(0, left + 1)
         const available = limit - width(before, size) - 3
         if (available < 1) return undefined
-        const inner = item.text.slice(left + 1, table.right)
+        const inner = item.text.slice(left + 1, -1)
         if (horizontal.test(inner)) {
-            output.push(before + inner[0].repeat(available + 2) + item.text[table.right])
+            output.push(before + inner[0].repeat(available + 2) + item.text[item.text.length - 1])
             index++
             continue
         }
+        const groupStart = index
         const group: Row[] = []
         while (index < table.rows.length) {
             const next = table.rows[index]
-            if (cellLeft(table, next.text) !== left || horizontal.test(next.text.slice(left + 1, table.right))) break
+            if (cellLeft(table, next.text) !== left || horizontal.test(next.text.slice(left + 1, -1))) break
             group.push(next); index++
         }
         const capacity = Math.min(...group.map(part => limit - width(part.prefix + part.text.slice(0, left + 1), size) - 3))
         if (capacity < 1) return undefined
-        const content = group.map(part => part.text.slice(left + 1, table.right).replace(/^ /, '').trimEnd())
-        // Padding used to align other columns is not an extra paragraph.
-        while (content.length > 1 && !content[content.length - 1].trim()) content.pop()
-        const wrapped = wrap(content, capacity, size, settings.doubleSentenceSpacing)
-        if (!wrapped) return undefined
+        const content = group.map(part => part.text.slice(left + 1, -1).replace(/^ /, '').trimEnd())
+        const mask = selectedLines(content, table.start + groupStart, selections)
+        if (mask.some(Boolean)) selected = true
+        const wrapped: string[] = []
+        let part = 0
+        while (part < content.length) {
+            if (!mask[part]) { wrapped.push(content[part]); part++; continue }
+            const begin = part
+            while (part < content.length && mask[part]) part++
+            const paragraph = wrap(content.slice(begin, part), capacity, size, settings.doubleSentenceSpacing)
+            if (!paragraph) return undefined
+            wrapped.push(...paragraph)
+        }
         let keep = 1
         for (let i = 0; i < group.length; i++) {
             const previous = group[i].text.slice(0, left)
@@ -160,22 +199,37 @@ function render(table: Table, settings: Settings): string[] | undefined {
             if (i < group.length) prefix = group[i].prefix + group[i].text.slice(0, left + 1)
             const text = wrapped[i] || ''
             const padding = limit - width(prefix + ' ' + text, size) - 2
-            output.push(prefix + ' ' + text + ' '.repeat(Math.max(0, padding)) + ' ' + last.text[table.right])
+            output.push(prefix + ' ' + text + ' '.repeat(Math.max(0, padding)) + ' ' + last.text[last.text.length - 1])
         }
     }
-    return output
+    if (!selected) return table.rows.map(item => item.prefix + item.text)
+    // A preserved paragraph/code example can be wider than the requested ruler.
+    // Keep its contents and align the whole box rather than clipping or reflowing it.
+    const finalWidth = Math.max(...output.map(line => width(line, size)))
+    return output.map(line => {
+        const extra = finalWidth - width(line, size)
+        if (!extra) return line
+        const fill = /[┐┤┘+]$/.test(line) || border(row(line)?.text || '') ? '─' : ' '
+        let stroke = fill
+        if (fill === '─' && line.endsWith('|')) stroke = '-'
+        return line.slice(0, -1) + stroke.repeat(extra) + line.slice(-1)
+    })
+}
+
+export function ataulaRanges(lines: readonly string[]): {start: number, end: number}[] {
+    return tables(lines).map(table => ({start: table.start, end: table.end}))
 }
 
 /** A recognized Ataula box is always handled here, even when it cannot fit. */
 export function rewrapAtaula(lines: readonly string[], settings: Settings, selections: readonly Selection[]): AtaulaResult | undefined {
     const targets = tables(lines).filter(table => selections.some(selection =>
-        selection.active.line >= table.start && selection.active.line <= table.end &&
-        selection.anchor.line >= table.start && selection.anchor.line <= table.end))
+        Math.max(selection.active.line, selection.anchor.line) >= table.start &&
+        Math.min(selection.active.line, selection.anchor.line) <= table.end))
     if (!targets.length) return undefined
     const empty: Edit = {startLine: 0, endLine: -1, lines: [], selections, isEmpty: true}
     const replacements: string[][] = []
     for (const table of targets) {
-        const formatted = render(table, settings)
+        const formatted = render(table, settings, selections)
         if (!formatted) return {edit: empty, message: 'A última coluna não cabe neste limite sem alterar as colunas anteriores ou uma tabela interna. Aumente o limite ou reduza essas colunas manualmente.'}
         replacements.push(formatted)
     }
@@ -184,5 +238,9 @@ export function rewrapAtaula(lines: readonly string[], settings: Settings, selec
     const result = lines.slice(startLine, endLine + 1)
     for (let i = targets.length - 1; i >= 0; i--) result.splice(targets[i].start - startLine, targets[i].end - targets[i].start + 1, ...replacements[i])
     const unchanged = result.length === endLine - startLine + 1 && result.every((line, i) => line === lines[startLine + i])
-    return {edit: {startLine, endLine, lines: result, selections, isEmpty: unchanged}}
+    let message: string | undefined
+    if (!unchanged && settings.column > 0 && result.some(line => width(line, settings.tabWidth) > settings.column)) {
+        message = 'O trecho foi reorganizado, mas a borda manteve uma largura maior para preservar código ou texto fora da seleção.'
+    }
+    return {edit: {startLine, endLine, lines: result, selections, isEmpty: unchanged}, message}
 }

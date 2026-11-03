@@ -1,0 +1,34 @@
+/**
+     * 🟢 PARTES DA URL AINDA DISPONÍVEIS
+     * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     * Armazena a lista das partes da URL, que vai sendo reduzida conforme forem sendo processadas. Este parágrafo deve ser reorganizado sem alterar o exemplo abaixo.
+     *
+     * ✔️ EXEMPLO
+     * ┌───────────────────────────────────────────────────────────────────────┐
+     * │ Uma rota `/produtos/listar/ativos` é armazenada como:                 │
+     * │                                                                       │
+     * │ [                                                                     │
+     * │     '',                                                               │
+     * │     'produtos',                                                       │
+     * │     'listar',                                                         │
+     * │     'ativos'                                                          │
+     * │ ];                                                                    │
+     * │                                                                       │
+     * │ Router vai procurar o nó `/produtos` na configuração de rotas. Assim  │
+     * │ que encontrar, remove 'produtos' da lista acima e continua procurando │
+     * │ um nó `/listar`. Se encontrar, remove 'listar' da lista e assim por   │
+     * │ diante.                                                               │
+     * │                                                                       │
+     * │ Se 'listar' for encontrado como um endpoint `@listar`, a busca por    │
+     * │ nós termina e 'listar' também é removido da lista.                    │
+     * │                                                                       │
+     * │ Neste caso, 'ativos' vai ficar sobrando, podendo ser usado como       │
+     * │ valor de um parâmetro de rota, a depender da configuração.            │
+     * └───────────────────────────────────────────────────────────────────────┘
+     *
+     * Note que o primeiro valor do array é uma string vazia. Explicaremos o
+     * motivo disso mais à frente.
+     *
+     * _________________________________
+     * @var array<string>
+     */
